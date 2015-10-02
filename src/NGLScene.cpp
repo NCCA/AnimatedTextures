@@ -117,7 +117,7 @@ void NGLScene::initialize()
   std::vector <data> points;
   rng->setSeed();
 
-  for(int i=0; i<40000; ++i)
+  for(int i=0; i<4000; ++i)
   {
    float radius=8+rng->randomPositiveNumber(1);
    float x=radius*cos(float (ngl::radians(i)));

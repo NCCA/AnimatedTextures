@@ -7,7 +7,7 @@ uniform mat4 VP;
 uniform vec3 camerapos;
 uniform int time;
 uniform float bbWidth=0.5;
-uniform float bbHeight=1.0;
+uniform float bbHeight=2.0;
 out vec2 vertUV;
 flat out float texID;
 flat in float whichTexture[];
