@@ -42,9 +42,9 @@ bool NGLScene::depthSort(data a, data b)
 
 NGLScene::~NGLScene()
 {
-  ngl::NGLInit *Init = ngl::NGLInit::instance();
+
   std::cout<<"Shutting down NGL, removing VAO's and Shaders\n";
-  Init->NGLQuit();
+
 }
 
 void NGLScene::resizeEvent(QResizeEvent *_event )
