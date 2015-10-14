@@ -10,16 +10,13 @@
 #include <ngl/Texture.h>
 
 
-//----------------------------------------------------------------------------------------------------------------------
-/// @brief the increment for x/y translation with mouse movement
-//----------------------------------------------------------------------------------------------------------------------
-const static float INCREMENT=2.1;
+
 //----------------------------------------------------------------------------------------------------------------------
 /// @brief the increment for the wheel zoom
 //----------------------------------------------------------------------------------------------------------------------
 const static float ZOOM=0.5;
 
-NGLScene::NGLScene(QWindow *_parent) : OpenGLWindow(_parent)
+NGLScene::NGLScene()
 {
   // re-size the widget to that of the parent (in this case the GLFrame passed in on construction)
   m_rotate=false;
@@ -42,27 +39,20 @@ bool NGLScene::depthSort(data a, data b)
 
 NGLScene::~NGLScene()
 {
-  ngl::NGLInit *Init = ngl::NGLInit::instance();
   std::cout<<"Shutting down NGL, removing VAO's and Shaders\n";
-  Init->NGLQuit();
 }
 
-void NGLScene::resizeEvent(QResizeEvent *_event )
+void NGLScene::resizeGL(int _w, int _h)
 {
-  if(isExposed())
-  {
-  int w=_event->size().width();
-  int h=_event->size().height();
   // set the viewport for openGL
-  glViewport(0,0,w,h);
+  glViewport(0,0,_w,_h);
   // now set the camera size values as the screen size has changed
-  m_cam->setShape(45,(float)w/h,0.05,350);
-  renderLater();
-  }
+  m_cam->setShape(45,(float)_w/_h,0.05,350);
+  update();
 }
 
 
-void NGLScene::initialize()
+void NGLScene::initializeGL()
 {
   // we must call this first before any other GL commands to load and link the
   // gl commands from the lib, if this is not done program will crash
@@ -117,7 +107,7 @@ void NGLScene::initialize()
   std::vector <data> points;
   rng->setSeed();
 
-  for(int i=0; i<40000; ++i)
+  for(int i=0; i<200; ++i)
   {
    float radius=8+rng->randomPositiveNumber(1);
    float x=radius*cos(float (ngl::radians(i)));
@@ -140,7 +130,6 @@ void NGLScene::initialize()
 
   m_vao->setNumIndices(points.size());
   m_vao->unbind();
-
 
   // Now we will create a basic Camera from the graphics library
   // This is a static camera so it only needs to be set once
@@ -198,18 +187,13 @@ void NGLScene::loadMatricesToShader()
   shader->setShaderParamFromMat4("MVP",MVP);
 }
 
-void NGLScene::render()
+void NGLScene::paintGL()
 {
   // clear the screen and depth buffer
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // grab an instance of the shader manager
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-
-
-   // get the VBO instance and draw the built in teapot
-  //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
   shader->setRegisteredUniform("camerapos",m_cam->getEye().toVec3());
   shader->setRegisteredUniform("VP",m_cam->getVPMatrix());
@@ -231,7 +215,7 @@ void NGLScene::mouseMoveEvent (QMouseEvent * _event)
     m_origX = _event->x();
     m_origY = _event->y();
     m_cam->yaw(diffx);
-    renderLater();
+    update();
 
   }
     // right mouse translate code
@@ -241,7 +225,7 @@ void NGLScene::mouseMoveEvent (QMouseEvent * _event)
     m_origXPos=_event->x();
     m_origYPos=_event->y();
     m_cam->pitch(diffY);
-    renderLater();
+    update();
 
    }
 }
@@ -298,7 +282,7 @@ void NGLScene::wheelEvent(QWheelEvent *_event)
 		m_modelPos.m_z-=ZOOM;
 	}
 	m_cam->setEye(-m_modelPos);
-	renderLater();
+	update();
 }
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -323,7 +307,7 @@ void NGLScene::keyPressEvent(QKeyEvent *_event)
   }
   // finally update the GLWindow and re-draw
   //if (isExposed())
-    renderLater();
+    update();
 }
 
 
@@ -337,6 +321,6 @@ void NGLScene::timerEvent(QTimerEvent *)
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
   shader->setRegisteredUniform1i("time",m_time);
 
-  renderLater();
+  update();
 }
 
