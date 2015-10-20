@@ -73,8 +73,8 @@ void NGLScene::initializeGL()
   // we are creating a shader called Phong
   shader->createShaderProgram("Billboard");
   // now we are going to create empty shaders for Frag and Vert
-  shader->attachShader("BillboardVert",ngl::VERTEX);
-  shader->attachShader("BillboardFrag",ngl::FRAGMENT);
+  shader->attachShader("BillboardVert",ngl::ShaderType::VERTEX);
+  shader->attachShader("BillboardFrag",ngl::ShaderType::FRAGMENT);
   shader->attachShader("BillboardGeo",ngl::GEOMETRY);
 
   // attach the source
