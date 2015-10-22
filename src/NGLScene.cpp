@@ -75,7 +75,7 @@ void NGLScene::initializeGL()
   // now we are going to create empty shaders for Frag and Vert
   shader->attachShader("BillboardVert",ngl::ShaderType::VERTEX);
   shader->attachShader("BillboardFrag",ngl::ShaderType::FRAGMENT);
-  shader->attachShader("BillboardGeo",ngl::GEOMETRY);
+  shader->attachShader("BillboardGeo",ngl::ShaderType::GEOMETRY);
 
   // attach the source
   shader->loadShaderSource("BillboardVert","shaders/BillboardVert.glsl");
@@ -107,7 +107,7 @@ void NGLScene::initializeGL()
   std::vector <data> points;
   rng->setSeed();
 
-  for(int i=0; i<200; ++i)
+  for(int i=0; i<2000; ++i)
   {
    float radius=8+rng->randomPositiveNumber(1);
    float x=radius*cos(float (ngl::radians(i)));
@@ -149,7 +149,6 @@ void NGLScene::initializeGL()
   t.setMultiTexture(0);
   m_maps[0]=t.setTextureGL();
   glGenerateMipmap(GL_TEXTURE_2D);
-
 
   t.loadImage("textures/map2.png");
   t.setMultiTexture(1);
