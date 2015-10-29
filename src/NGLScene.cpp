@@ -42,13 +42,13 @@ NGLScene::~NGLScene()
   std::cout<<"Shutting down NGL, removing VAO's and Shaders\n";
 }
 
-void NGLScene::resizeGL(int _w, int _h)
+void NGLScene::resizeGL(QResizeEvent *_event)
 {
-  // set the viewport for openGL
-  glViewport(0,0,_w,_h);
   // now set the camera size values as the screen size has changed
-  m_cam->setShape(45,(float)_w/_h,0.05,350);
-  update();
+  m_cam.setShape(45,(float)width()/height(),0.05,350);
+  m_width=_event->size().width()*devicePixelRatio();
+  m_height=_event->size().height()*devicePixelRatio();
+
 }
 
 
@@ -98,7 +98,7 @@ void NGLScene::initializeGL()
   shader->setRegisteredUniform1i("time",2);
 
   // create a voa of points to draw
-  m_vao= ngl::VertexArrayObject::createVOA(GL_POINTS);
+  m_vao.reset( ngl::VertexArrayObject::createVOA(GL_POINTS));
   m_vao->bind();
 
   ngl::Random *rng=ngl::Random::instance();
@@ -138,10 +138,10 @@ void NGLScene::initializeGL()
   ngl::Vec3 to(0,0,-2);
   ngl::Vec3 up(0,1,0);
   // now load to our new camera
-  m_cam= new ngl::Camera(from,to,up);
+  m_cam.set(from,to,up);
   // set the shape using FOV 45 Aspect Ratio based on Width and Height
   // The final two are near and far clipping planes of 0.5 and 10
-  m_cam->setShape(45,(float)720.0/576.0,0.01,350);
+  m_cam.setShape(45,(float)720.0/576.0,0.01,350);
 
   ngl::Texture t;
 
@@ -182,7 +182,7 @@ void NGLScene::loadMatricesToShader()
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
 
   ngl::Mat4 MVP;
-  MVP= m_cam->getVPMatrix();
+  MVP= m_cam.getVPMatrix();
   shader->setShaderParamFromMat4("MVP",MVP);
 }
 
@@ -194,8 +194,8 @@ void NGLScene::paintGL()
   // grab an instance of the shader manager
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
 
-  shader->setRegisteredUniform("camerapos",m_cam->getEye().toVec3());
-  shader->setRegisteredUniform("VP",m_cam->getVPMatrix());
+  shader->setRegisteredUniform("camerapos",m_cam.getEye().toVec3());
+  shader->setRegisteredUniform("VP",m_cam.getVPMatrix());
   m_vao->bind();
   m_vao->draw();
   m_vao->unbind();
@@ -213,7 +213,7 @@ void NGLScene::mouseMoveEvent (QMouseEvent * _event)
     int diffx=_event->x()-m_origX;
     m_origX = _event->x();
     m_origY = _event->y();
-    m_cam->yaw(diffx);
+    m_cam.yaw(diffx);
     update();
 
   }
@@ -223,7 +223,7 @@ void NGLScene::mouseMoveEvent (QMouseEvent * _event)
     int diffY = (int)(_event->y() - m_origYPos);
     m_origXPos=_event->x();
     m_origYPos=_event->y();
-    m_cam->pitch(diffY);
+    m_cam.pitch(diffY);
     update();
 
    }
@@ -280,7 +280,7 @@ void NGLScene::wheelEvent(QWheelEvent *_event)
 	{
 		m_modelPos.m_z-=ZOOM;
 	}
-	m_cam->setEye(-m_modelPos);
+	m_cam.setEye(-m_modelPos);
 	update();
 }
 //----------------------------------------------------------------------------------------------------------------------
