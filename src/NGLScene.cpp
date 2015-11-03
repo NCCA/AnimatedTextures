@@ -45,13 +45,18 @@ NGLScene::~NGLScene()
 void NGLScene::resizeGL(QResizeEvent *_event)
 {
   // now set the camera size values as the screen size has changed
-  m_cam.setShape(45,(float)width()/height(),0.05,350);
+  m_cam.setShape(45.0f,(float)width()/height(),0.05f,350.0f);
   m_width=_event->size().width()*devicePixelRatio();
   m_height=_event->size().height()*devicePixelRatio();
 
 }
 
-
+void NGLScene::resizeGL(int _w , int _h)
+{
+  m_cam.setShape(45.0f,(float)width()/height(),0.05f,350.0f);
+  m_width=_w*devicePixelRatio();
+  m_height=_h*devicePixelRatio();
+}
 void NGLScene::initializeGL()
 {
   // we must call this first before any other GL commands to load and link the
