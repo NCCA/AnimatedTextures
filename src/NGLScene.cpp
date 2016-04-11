@@ -9,12 +9,10 @@
 #include <ngl/Random.h>
 #include <ngl/Texture.h>
 
-
-
 //----------------------------------------------------------------------------------------------------------------------
 /// @brief the increment for the wheel zoom
 //----------------------------------------------------------------------------------------------------------------------
-const static float ZOOM=0.5;
+constexpr float ZOOM=0.5f;
 
 NGLScene::NGLScene()
 {
@@ -45,17 +43,17 @@ NGLScene::~NGLScene()
 void NGLScene::resizeGL(QResizeEvent *_event)
 {
   // now set the camera size values as the screen size has changed
-  m_cam.setShape(45.0f,(float)width()/height(),0.05f,350.0f);
-  m_width=_event->size().width()*devicePixelRatio();
-  m_height=_event->size().height()*devicePixelRatio();
+  m_cam.setShape(45.0f,static_cast<float>(width())/height(),0.05f,350.0f);
+  m_width=static_cast<int>(_event->size().width()*devicePixelRatio());
+  m_height=static_cast<int>(_event->size().height()*devicePixelRatio());
 
 }
 
 void NGLScene::resizeGL(int _w , int _h)
 {
-  m_cam.setShape(45.0f,(float)width()/height(),0.05f,350.0f);
-  m_width=_w*devicePixelRatio();
-  m_height=_h*devicePixelRatio();
+  m_cam.setShape(45.0f,static_cast<float>(width())/height(),0.05f,350.0f);
+  m_width=static_cast<int>(_w*devicePixelRatio());
+  m_height=static_cast<int>(_h*devicePixelRatio());
 }
 void NGLScene::initializeGL()
 {
@@ -73,34 +71,38 @@ void NGLScene::initializeGL()
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
 
 
-  // create a billboard shader
+  // create a billboard shader use strings to avoid typos
+  auto constexpr BillboardShader="Billboard";
+  auto constexpr BillboardVert="BillboardVert";
+  auto constexpr BillboardFrag="BillboardFrag";
+  auto constexpr BillboardGeo="BillboardGeo";
+
 
   // we are creating a shader called Phong
-  shader->createShaderProgram("Billboard");
+  shader->createShaderProgram(BillboardShader);
   // now we are going to create empty shaders for Frag and Vert
-  shader->attachShader("BillboardVert",ngl::ShaderType::VERTEX);
-  shader->attachShader("BillboardFrag",ngl::ShaderType::FRAGMENT);
-  shader->attachShader("BillboardGeo",ngl::ShaderType::GEOMETRY);
+  shader->attachShader(BillboardVert,ngl::ShaderType::VERTEX);
+  shader->attachShader(BillboardFrag,ngl::ShaderType::FRAGMENT);
+  shader->attachShader(BillboardGeo,ngl::ShaderType::GEOMETRY);
 
   // attach the source
-  shader->loadShaderSource("BillboardVert","shaders/BillboardVert.glsl");
-  shader->loadShaderSource("BillboardFrag","shaders/BillboardFrag.glsl");
-  shader->loadShaderSource("BillboardGeo","shaders/BillboardGeo.glsl");
+  shader->loadShaderSource(BillboardVert,"shaders/BillboardVert.glsl");
+  shader->loadShaderSource(BillboardFrag,"shaders/BillboardFrag.glsl");
+  shader->loadShaderSource(BillboardGeo,"shaders/BillboardGeo.glsl");
   // compile the shaders
-  shader->compileShader("BillboardVert");
-  shader->compileShader("BillboardFrag");
-  shader->compileShader("BillboardGeo");
+  shader->compileShader(BillboardVert);
+  shader->compileShader(BillboardFrag);
+  shader->compileShader(BillboardGeo);
   // add them to the program
-  shader->attachShaderToProgram("Billboard","BillboardVert");
-  shader->attachShaderToProgram("Billboard","BillboardFrag");
-  shader->attachShaderToProgram("Billboard","BillboardGeo");
+  shader->attachShaderToProgram(BillboardShader,BillboardVert);
+  shader->attachShaderToProgram(BillboardShader,BillboardFrag);
+  shader->attachShaderToProgram(BillboardShader,BillboardGeo);
 
   // now we have associated this data we can link the shader
-  shader->linkProgramObject("Billboard");
+  shader->linkProgramObject(BillboardShader);
   // and make it active ready to load values
-  (*shader)["Billboard"]->use();
-  shader->autoRegisterUniforms("Billboard");
-  shader->setRegisteredUniform1i("time",2);
+  (*shader)[BillboardShader]->use();
+  shader->setUniform("time",2);
 
   // create a voa of points to draw
   m_vao.reset( ngl::VertexArrayObject::createVOA(GL_POINTS));
@@ -112,19 +114,19 @@ void NGLScene::initializeGL()
   std::vector <data> points;
   rng->setSeed();
 
-  for(int i=0; i<2000; ++i)
+  for(int i=0; i<20000; ++i)
   {
    float radius=8+rng->randomPositiveNumber(1);
-   float x=radius*cos(float (ngl::radians(i)));
-   float z=radius*sin(float (ngl::radians(i)));
+   float x=radius*cosf( ngl::radians(i));
+   float z=radius*sinf( ngl::radians(i));
 
    p.p.m_x=x;
    p.p.m_y=-rng->randomPositiveNumber(1);
    p.p.m_z=z;
 
-   p.p.m_w=(int)rng->randomPositiveNumber(3);
+   p.p.m_w=static_cast<int>(rng->randomPositiveNumber(3));
    // time offset we have 10 frames for each texture
-   p.offset=(int)rng->randomPositiveNumber(10);
+   p.offset=static_cast<int>(rng->randomPositiveNumber(10));
    points.push_back(p);
   }
   std::sort(points.begin(),points.end(),NGLScene::depthSort);
@@ -139,14 +141,14 @@ void NGLScene::initializeGL()
   // Now we will create a basic Camera from the graphics library
   // This is a static camera so it only needs to be set once
   // First create Values for the camera position
-  ngl::Vec3 from(0,0,10);
-  ngl::Vec3 to(0,0,-2);
-  ngl::Vec3 up(0,1,0);
+  ngl::Vec3 from(0.0f,0.0f,10.0f);
+  ngl::Vec3 to(0.0f,0.0f,-2.0f);
+  ngl::Vec3 up(0.0f,1.0f,0.0f);
   // now load to our new camera
   m_cam.set(from,to,up);
   // set the shape using FOV 45 Aspect Ratio based on Width and Height
   // The final two are near and far clipping planes of 0.5 and 10
-  m_cam.setShape(45,(float)720.0/576.0,0.01,350);
+  m_cam.setShape(45.0f,720.0f/576.0f,0.01f,35.0f);
 
   ngl::Texture t;
 
@@ -165,12 +167,10 @@ void NGLScene::initializeGL()
   m_maps[2]=t.setTextureGL();
   glGenerateMipmap(GL_TEXTURE_2D);
 
-  shader->setShaderParam1i("tex1",0);
-  shader->setShaderParam1i("tex2",1);
-  shader->setShaderParam1i("tex3",2);
+  shader->setUniform("tex1",0);
+  shader->setUniform("tex2",1);
+  shader->setUniform("tex3",2);
 
-
-  //glEnable(GL_DEPTH_TEST);
   glDisable( GL_DEPTH_TEST );
   glEnable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -188,7 +188,7 @@ void NGLScene::loadMatricesToShader()
 
   ngl::Mat4 MVP;
   MVP= m_cam.getVPMatrix();
-  shader->setShaderParamFromMat4("MVP",MVP);
+  shader->setUniform("MVP",MVP);
 }
 
 void NGLScene::paintGL()
@@ -199,8 +199,8 @@ void NGLScene::paintGL()
   // grab an instance of the shader manager
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
 
-  shader->setRegisteredUniform("camerapos",m_cam.getEye().toVec3());
-  shader->setRegisteredUniform("VP",m_cam.getVPMatrix());
+  shader->setUniform("camerapos",m_cam.getEye().toVec3());
+  shader->setUniform("VP",m_cam.getVPMatrix());
   m_vao->bind();
   m_vao->draw();
   m_vao->unbind();
@@ -225,7 +225,7 @@ void NGLScene::mouseMoveEvent (QMouseEvent * _event)
     // right mouse translate code
   else if(m_translate && _event->buttons() == Qt::RightButton)
   {
-    int diffY = (int)(_event->y() - m_origYPos);
+    int diffY = static_cast<int>(_event->y() - m_origYPos);
     m_origXPos=_event->x();
     m_origYPos=_event->y();
     m_cam.pitch(diffY);
@@ -306,11 +306,9 @@ void NGLScene::keyPressEvent(QKeyEvent *_event)
   case Qt::Key_F : showFullScreen(); break;
   // show windowed
   case Qt::Key_N : showNormal(); break;
-    case Qt::Key_Space : m_animate ^=true; break;
+  case Qt::Key_Space : m_animate ^=true; break;
   default : break;
   }
-  // finally update the GLWindow and re-draw
-  //if (isExposed())
     update();
 }
 
@@ -323,8 +321,7 @@ void NGLScene::timerEvent(QTimerEvent *)
     ++m_time;
   }
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-  shader->setRegisteredUniform1i("time",m_time);
-
+  shader->setUniform("time",m_time);
   update();
 }
 

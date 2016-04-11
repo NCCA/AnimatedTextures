@@ -1,10 +1,11 @@
-#ifndef NGLSCENE_H__
-#define NGLSCENE_H__
+#ifndef NGLSCENE_H_
+#define NGLSCENE_H_
 #include <ngl/Camera.h>
 #include <ngl/Colour.h>
 #include <ngl/Light.h>
 #include <ngl/Text.h>
 #include <QOpenGLWindow>
+#include <array>
 #include <memory>
 //----------------------------------------------------------------------------------------------------------------------
 /// @file NGLScene.h
@@ -104,7 +105,7 @@ private:
     int m_currentTexture;
     std::vector <int> m_loop;
     std::unique_ptr<ngl::VertexArrayObject> m_vao;
-    GLuint m_maps[3];
+    std::array<GLuint,3> m_maps;
     bool m_animate;
     int m_time;
 
