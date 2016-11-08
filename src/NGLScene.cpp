@@ -9,18 +9,9 @@
 #include <ngl/Random.h>
 #include <ngl/Texture.h>
 
-//----------------------------------------------------------------------------------------------------------------------
-/// @brief the increment for the wheel zoom
-//----------------------------------------------------------------------------------------------------------------------
-constexpr float ZOOM=0.5f;
 
 NGLScene::NGLScene()
 {
-  // re-size the widget to that of the parent (in this case the GLFrame passed in on construction)
-  m_rotate=false;
-  // mouse rotation values set to 0
-  m_spinXFace=0;
-  m_spinYFace=0;
   setTitle("Animated Billboard Textures");
   m_currentTexture=0;
   m_animate=true;
@@ -40,14 +31,7 @@ NGLScene::~NGLScene()
   std::cout<<"Shutting down NGL, removing VAO's and Shaders\n";
 }
 
-void NGLScene::resizeGL(QResizeEvent *_event)
-{
-  // now set the camera size values as the screen size has changed
-  m_cam.setShape(45.0f,static_cast<float>(width())/height(),0.05f,350.0f);
-  m_width=static_cast<int>(_event->size().width()*devicePixelRatio());
-  m_height=static_cast<int>(_event->size().height()*devicePixelRatio());
 
-}
 
 void NGLScene::resizeGL(int _w , int _h)
 {
@@ -213,21 +197,21 @@ void NGLScene::mouseMoveEvent (QMouseEvent * _event)
   // note the method buttons() is the button state when event was called
   // this is different from button() which is used to check which button was
   // pressed when the mousePress/Release event is generated
-  if(m_rotate && _event->buttons() == Qt::LeftButton)
+  if(m_win.rotate && _event->buttons() == Qt::LeftButton)
   {
-    int diffx=_event->x()-m_origX;
-    m_origX = _event->x();
-    m_origY = _event->y();
+    int diffx=_event->x()-m_win.origX;
+    m_win.origX = _event->x();
+    m_win.origY = _event->y();
     m_cam.yaw(diffx);
     update();
 
   }
     // right mouse translate code
-  else if(m_translate && _event->buttons() == Qt::RightButton)
+  else if(m_win.translate && _event->buttons() == Qt::RightButton)
   {
-    int diffY = static_cast<int>(_event->y() - m_origYPos);
-    m_origXPos=_event->x();
-    m_origYPos=_event->y();
+    int diffY = static_cast<int>(_event->y() - m_win.origYPos);
+    m_win.origXPos=_event->x();
+    m_win.origYPos=_event->y();
     m_cam.pitch(diffY);
     update();
 
@@ -242,16 +226,16 @@ void NGLScene::mousePressEvent ( QMouseEvent * _event)
   // store the value where the maouse was clicked (x,y) and set the Rotate flag to true
   if(_event->button() == Qt::LeftButton)
   {
-    m_origX = _event->x();
-    m_origY = _event->y();
-    m_rotate =true;
+    m_win.origX = _event->x();
+    m_win.origY = _event->y();
+    m_win.rotate =true;
   }
   // right mouse translate mode
   else if(_event->button() == Qt::RightButton)
   {
-    m_origXPos = _event->x();
-    m_origYPos = _event->y();
-    m_translate=true;
+    m_win.origXPos = _event->x();
+    m_win.origYPos = _event->y();
+    m_win.translate=true;
   }
 
 }
@@ -263,12 +247,12 @@ void NGLScene::mouseReleaseEvent ( QMouseEvent * _event )
   // we then set Rotate to false
   if (_event->button() == Qt::LeftButton)
   {
-    m_rotate=false;
+    m_win.rotate=false;
   }
         // right mouse translate mode
   if (_event->button() == Qt::RightButton)
   {
-    m_translate=false;
+    m_win.translate=false;
   }
 }
 
@@ -276,17 +260,17 @@ void NGLScene::mouseReleaseEvent ( QMouseEvent * _event )
 void NGLScene::wheelEvent(QWheelEvent *_event)
 {
 
-	// check the diff of the wheel position (0 means no change)
-	if(_event->delta() > 0)
-	{
-		m_modelPos.m_z+=ZOOM;
-	}
-	else if(_event->delta() <0 )
-	{
-		m_modelPos.m_z-=ZOOM;
-	}
-	m_cam.setEye(-m_modelPos);
-	update();
+  // check the diff of the wheel position (0 means no change)
+  if(_event->delta() > 0)
+  {
+    m_modelPos.m_z+=ZOOM;
+  }
+  else if(_event->delta() <0 )
+  {
+    m_modelPos.m_z-=ZOOM;
+  }
+  m_cam.setEye(-m_modelPos);
+  update();
 }
 //----------------------------------------------------------------------------------------------------------------------
 
