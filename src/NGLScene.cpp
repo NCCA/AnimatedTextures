@@ -4,7 +4,8 @@
 #include "NGLScene.h"
 #include <ngl/Camera.h>
 #include <ngl/NGLInit.h>
-#include <ngl/VAOPrimitives.h>
+#include <ngl/VAOFactory.h>
+#include <ngl/SimpleVAO.h>
 #include <ngl/ShaderLib.h>
 #include <ngl/Random.h>
 #include <ngl/Texture.h>
@@ -89,7 +90,7 @@ void NGLScene::initializeGL()
   shader->setUniform("time",2);
 
   // create a voa of points to draw
-  m_vao.reset( ngl::VertexArrayObject::createVOA(GL_POINTS));
+  m_vao.reset( ngl::VAOFactory::createVAO(ngl::simpleVAO,GL_POINTS));
   m_vao->bind();
 
   ngl::Random *rng=ngl::Random::instance();
@@ -114,7 +115,7 @@ void NGLScene::initializeGL()
    points.push_back(p);
   }
   std::sort(points.begin(),points.end(),NGLScene::depthSort);
-  m_vao->setData(points.size()*sizeof(data),points[0].p.m_x,GL_DYNAMIC_DRAW);
+  m_vao->setData(ngl::AbstractVAO::VertexData(points.size()*sizeof(data),points[0].p.m_x));
 
   m_vao->setVertexAttributePointer(0,4,GL_FLOAT,sizeof(data),0);
   m_vao->setVertexAttributePointer(1,1,GL_FLOAT,sizeof(data),4);
@@ -161,8 +162,6 @@ void NGLScene::initializeGL()
 
   startTimer(40);
 
-  // as re-size is not explicitly called we need to do this.
-  glViewport(0,0,width(),height());
 }
 
 
@@ -191,88 +190,6 @@ void NGLScene::paintGL()
 
 }
 
-//----------------------------------------------------------------------------------------------------------------------
-void NGLScene::mouseMoveEvent (QMouseEvent * _event)
-{
-  // note the method buttons() is the button state when event was called
-  // this is different from button() which is used to check which button was
-  // pressed when the mousePress/Release event is generated
-  if(m_win.rotate && _event->buttons() == Qt::LeftButton)
-  {
-    int diffx=_event->x()-m_win.origX;
-    m_win.origX = _event->x();
-    m_win.origY = _event->y();
-    m_cam.yaw(diffx);
-    update();
-
-  }
-    // right mouse translate code
-  else if(m_win.translate && _event->buttons() == Qt::RightButton)
-  {
-    int diffY = static_cast<int>(_event->y() - m_win.origYPos);
-    m_win.origXPos=_event->x();
-    m_win.origYPos=_event->y();
-    m_cam.pitch(diffY);
-    update();
-
-   }
-}
-
-
-//----------------------------------------------------------------------------------------------------------------------
-void NGLScene::mousePressEvent ( QMouseEvent * _event)
-{
-  // this method is called when the mouse button is pressed in this case we
-  // store the value where the maouse was clicked (x,y) and set the Rotate flag to true
-  if(_event->button() == Qt::LeftButton)
-  {
-    m_win.origX = _event->x();
-    m_win.origY = _event->y();
-    m_win.rotate =true;
-  }
-  // right mouse translate mode
-  else if(_event->button() == Qt::RightButton)
-  {
-    m_win.origXPos = _event->x();
-    m_win.origYPos = _event->y();
-    m_win.translate=true;
-  }
-
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void NGLScene::mouseReleaseEvent ( QMouseEvent * _event )
-{
-  // this event is called when the mouse button is released
-  // we then set Rotate to false
-  if (_event->button() == Qt::LeftButton)
-  {
-    m_win.rotate=false;
-  }
-        // right mouse translate mode
-  if (_event->button() == Qt::RightButton)
-  {
-    m_win.translate=false;
-  }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void NGLScene::wheelEvent(QWheelEvent *_event)
-{
-
-  // check the diff of the wheel position (0 means no change)
-  if(_event->delta() > 0)
-  {
-    m_modelPos.m_z+=ZOOM;
-  }
-  else if(_event->delta() <0 )
-  {
-    m_modelPos.m_z-=ZOOM;
-  }
-  m_cam.setEye(-m_modelPos);
-  update();
-}
-//----------------------------------------------------------------------------------------------------------------------
 
 void NGLScene::keyPressEvent(QKeyEvent *_event)
 {
