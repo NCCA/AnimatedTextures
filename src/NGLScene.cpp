@@ -14,15 +14,9 @@
 NGLScene::NGLScene()
 {
   setTitle("Animated Billboard Textures");
-  m_currentTexture=0;
   m_animate=true;
   m_time=0;
 
-}
-
-bool NGLScene::depthSort(data a, data b)
-{
-  return a.p.m_z<b.p.m_z;
 }
 
 
@@ -37,8 +31,8 @@ NGLScene::~NGLScene()
 void NGLScene::resizeGL(int _w , int _h)
 {
   m_cam.setShape(45.0f,static_cast<float>(width())/height(),0.05f,350.0f);
-  m_width=static_cast<int>(_w*devicePixelRatio());
-  m_height=static_cast<int>(_h*devicePixelRatio());
+  m_win.width=static_cast<int>(_w*devicePixelRatio());
+  m_win.height=static_cast<int>(_h*devicePixelRatio());
 }
 void NGLScene::initializeGL()
 {
@@ -95,8 +89,8 @@ void NGLScene::initializeGL()
 
   ngl::Random *rng=ngl::Random::instance();
 
-  data p;
-  std::vector <data> points;
+  VertexData p;
+  std::vector <VertexData> points;
   rng->setSeed();
 
   for(int i=0; i<20000; ++i)
@@ -114,11 +108,15 @@ void NGLScene::initializeGL()
    p.offset=static_cast<int>(rng->randomPositiveNumber(10));
    points.push_back(p);
   }
-  std::sort(points.begin(),points.end(),NGLScene::depthSort);
-  m_vao->setData(ngl::AbstractVAO::VertexData(points.size()*sizeof(data),points[0].p.m_x));
+  // use a lambda to depth sort via z
+  std::sort(points.begin(),points.end(),[](VertexData _a, VertexData _b)
+  {
+    return _a.p.m_z<_b.p.m_z;
+  });
+  m_vao->setData(ngl::AbstractVAO::VertexData(points.size()*sizeof(VertexData),points[0].p.m_x));
 
-  m_vao->setVertexAttributePointer(0,4,GL_FLOAT,sizeof(data),0);
-  m_vao->setVertexAttributePointer(1,1,GL_FLOAT,sizeof(data),4);
+  m_vao->setVertexAttributePointer(0,4,GL_FLOAT,sizeof(VertexData),0);
+  m_vao->setVertexAttributePointer(1,1,GL_FLOAT,sizeof(VertexData),4);
 
   m_vao->setNumIndices(points.size());
   m_vao->unbind();
