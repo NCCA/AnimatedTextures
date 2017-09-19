@@ -91,9 +91,9 @@ void NGLScene::initializeGL()
 
   VertexData p;
   std::vector <VertexData> points;
-  rng->setSeed();
+  rng->setSeed(1234);
 
-  for(int i=0; i<20000; ++i)
+  for(int i=0; i<2000; ++i)
   {
    float radius=8+rng->randomPositiveNumber(1);
    float x=radius*cosf( ngl::radians(i));
