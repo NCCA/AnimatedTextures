@@ -1,11 +1,10 @@
 #ifndef NGLSCENE_H_
 #define NGLSCENE_H_
+#include <QOpenGLWindow>
 #include "WindowParams.h"
 #include <ngl/AbstractVAO.h>
-#include <ngl/Camera.h>
-#include <ngl/Colour.h>
-
-#include <QOpenGLWindow>
+#include <ngl/Vec4.h>
+#include <ngl/Mat4.h>
 #include <array>
 #include <memory>
 //----------------------------------------------------------------------------------------------------------------------
@@ -32,7 +31,7 @@ class NGLScene : public QOpenGLWindow
     //----------------------------------------------------------------------------------------------------------------------
     /// @brief dtor must close down ngl and release OpenGL resources
     //----------------------------------------------------------------------------------------------------------------------
-    ~NGLScene();
+    ~NGLScene() override;
     //----------------------------------------------------------------------------------------------------------------------
     /// @brief the initialize class is called once when the window is created and we have a valid GL context
     /// use this to setup any default GL stuff
@@ -61,7 +60,13 @@ private:
     //----------------------------------------------------------------------------------------------------------------------
     /// @brief Our Camera
     //----------------------------------------------------------------------------------------------------------------------
-    ngl::Camera m_cam;
+    ngl::Mat4 m_view;
+    ngl::Mat4 m_project;
+    ngl::Vec3 m_eye;
+    ngl::Vec3 m_look={0.0f,0.0f,-2.0f};
+    ngl::Vec3 m_up={0.0f,1.0f,0.0f};
+    ngl::Real m_yaw=0.0f;
+    ngl::Real m_pitch=0.0f;
     //----------------------------------------------------------------------------------------------------------------------
     /// @brief the model position for mouse movement
     //----------------------------------------------------------------------------------------------------------------------
@@ -71,14 +76,10 @@ private:
     /// array of texture ID for images
     std::array<GLuint,3> m_maps;
     /// flag for animation
-    bool m_animate;
+    bool m_animate=true;
     /// time for start frame
-    int m_time;
+    int m_time=0;
 
-    //----------------------------------------------------------------------------------------------------------------------
-    /// @brief method to load transform matrices to the shader
-    //----------------------------------------------------------------------------------------------------------------------
-    void loadMatricesToShader();
      //----------------------------------------------------------------------------------------------------------------------
     /// @brief Qt Event called when a key is pressed
     /// @param [in] _event the Qt event to query for size etc

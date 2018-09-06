@@ -2,7 +2,6 @@
 #include <QGuiApplication>
 
 #include "NGLScene.h"
-#include <ngl/Camera.h>
 #include <ngl/NGLInit.h>
 #include <ngl/VAOFactory.h>
 #include <ngl/SimpleVAO.h>
@@ -14,12 +13,7 @@
 NGLScene::NGLScene()
 {
   setTitle("Animated Billboard Textures");
-  m_animate=true;
-  m_time=0;
-
 }
-
-
 
 NGLScene::~NGLScene()
 {
@@ -27,10 +21,9 @@ NGLScene::~NGLScene()
 }
 
 
-
 void NGLScene::resizeGL(int _w , int _h)
 {
-  m_cam.setShape(45.0f,static_cast<float>(width())/height(),0.05f,350.0f);
+  m_project=ngl::perspective(45.0f,static_cast<float>(width())/height(),0.05f,350.0f);
   m_win.width=static_cast<int>(_w*devicePixelRatio());
   m_win.height=static_cast<int>(_h*devicePixelRatio());
 }
@@ -84,7 +77,7 @@ void NGLScene::initializeGL()
   shader->setUniform("time",2);
 
   // create a voa of points to draw
-  m_vao.reset( ngl::VAOFactory::createVAO(ngl::simpleVAO,GL_POINTS));
+  m_vao=ngl::VAOFactory::createVAO(ngl::simpleVAO,GL_POINTS);
   m_vao->bind();
 
   ngl::Random *rng=ngl::Random::instance();
@@ -124,14 +117,12 @@ void NGLScene::initializeGL()
   // Now we will create a basic Camera from the graphics library
   // This is a static camera so it only needs to be set once
   // First create Values for the camera position
-  ngl::Vec3 from(0.0f,0.0f,10.0f);
-  ngl::Vec3 to(0.0f,0.0f,-2.0f);
-  ngl::Vec3 up(0.0f,1.0f,0.0f);
+  m_eye.set(0.0f,0.0f,10.0f);
   // now load to our new camera
-  m_cam.set(from,to,up);
+ m_view=ngl::lookAt(m_eye,m_look,m_up);
   // set the shape using FOV 45 Aspect Ratio based on Width and Height
   // The final two are near and far clipping planes of 0.5 and 10
-  m_cam.setShape(45.0f,720.0f/576.0f,0.01f,35.0f);
+  m_project=ngl::perspective(45.0f,720.0f/576.0f,0.01f,35.0f);
 
   ngl::Texture t;
 
@@ -163,15 +154,6 @@ void NGLScene::initializeGL()
 }
 
 
-void NGLScene::loadMatricesToShader()
-{
-  ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-
-  ngl::Mat4 MVP;
-  MVP= m_cam.getVPMatrix();
-  shader->setUniform("MVP",MVP);
-}
-
 void NGLScene::paintGL()
 {
   // clear the screen and depth buffer
@@ -180,12 +162,20 @@ void NGLScene::paintGL()
   // grab an instance of the shader manager
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
 
-  shader->setUniform("camerapos",m_cam.getEye().toVec3());
-  shader->setUniform("VP",m_cam.getVPMatrix());
+  // now load to our new camera
+  ngl::Mat4 yaw,pitch;
+  // first create some rotation matrices from our yaw and pitch values
+  yaw.rotateY(m_yaw);
+  pitch.rotateX(m_pitch);
+  // then re-position the eye based on these
+  m_eye=m_eye*pitch*yaw;
+  // calculate a new camera matrix and send to shader
+  m_view=ngl::lookAt(m_eye,m_look,m_up);
+  shader->setUniform("camerapos",m_eye);
+  shader->setUniform("VP",m_project*m_view);
   m_vao->bind();
   m_vao->draw();
   m_vao->unbind();
-
 }
 
 

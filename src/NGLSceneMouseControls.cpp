@@ -1,7 +1,6 @@
 #include "NGLScene.h"
 #include <QMouseEvent>
 
-
 //----------------------------------------------------------------------------------------------------------------------
 void NGLScene::mouseMoveEvent (QMouseEvent * _event)
 {
@@ -13,7 +12,7 @@ void NGLScene::mouseMoveEvent (QMouseEvent * _event)
     int diffx=_event->x()-m_win.origX;
     m_win.origX = _event->x();
     m_win.origY = _event->y();
-    m_cam.yaw(diffx);
+    m_yaw=diffx;
     update();
 
   }
@@ -23,7 +22,7 @@ void NGLScene::mouseMoveEvent (QMouseEvent * _event)
     int diffY = static_cast<int>(_event->y() - m_win.origYPos);
     m_win.origXPos=_event->x();
     m_win.origYPos=_event->y();
-    m_cam.pitch(diffY);
+    m_pitch=diffY;
     update();
 
    }
@@ -59,11 +58,14 @@ void NGLScene::mouseReleaseEvent( QMouseEvent* _event )
   if ( _event->button() == Qt::LeftButton )
   {
     m_win.rotate = false;
+    m_yaw=0.0f;
   }
   // right mouse translate mode
   if ( _event->button() == Qt::RightButton )
   {
     m_win.translate = false;
+    m_pitch=0.0f;
+
   }
 }
 
@@ -80,7 +82,6 @@ void NGLScene::wheelEvent( QWheelEvent* _event )
   {
     m_modelPos.m_z -= ZOOM;
   }
-  m_cam.setEye(-m_modelPos);
-
+  m_eye=(-m_modelPos);
   update();
 }
