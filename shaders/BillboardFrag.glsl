@@ -31,5 +31,4 @@ void main ()
     {
         discard;
     }
- //fragColour=vec4(1);
 }
