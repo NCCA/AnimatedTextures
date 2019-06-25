@@ -54,6 +54,8 @@ NGLPATH=$$(NGLDIR)
 isEmpty(NGLPATH){ # note brace must be here
 	message("including $HOME/NGL")
 	include($(HOME)/NGL/UseNGL.pri)
+	win32:include($(HOMEDRIVE)\$(HOMEPATH)\NGL\UseNGL.pri)
+
 }
 else{ # note brace must be here
 	message("Using custom NGL location")
