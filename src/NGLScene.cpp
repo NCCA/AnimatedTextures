@@ -31,17 +31,13 @@ void NGLScene::initializeGL()
 {
   // we must call this first before any other GL commands to load and link the
   // gl commands from the lib, if this is not done program will crash
-  ngl::NGLInit::instance();
+  ngl::NGLInit::initialize();
 
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);			   // Grey Background
   // enable depth testing for drawing
   glEnable(GL_DEPTH_TEST);
   // enable multisampling for smoother drawing
   glEnable(GL_MULTISAMPLE);
-  // now to load the shader and set the values
-  // grab an instance of shader manager
-  ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-
 
   // create a billboard shader use strings to avoid typos
   auto constexpr BillboardShader="Billboard";
@@ -51,54 +47,53 @@ void NGLScene::initializeGL()
 
 
   // we are creating a shader called Phong
-  shader->createShaderProgram(BillboardShader);
+  ngl::ShaderLib::createShaderProgram(BillboardShader);
   // now we are going to create empty shaders for Frag and Vert
-  shader->attachShader(BillboardVert,ngl::ShaderType::VERTEX);
-  shader->attachShader(BillboardFrag,ngl::ShaderType::FRAGMENT);
-  shader->attachShader(BillboardGeo,ngl::ShaderType::GEOMETRY);
+  ngl::ShaderLib::attachShader(BillboardVert,ngl::ShaderType::VERTEX);
+  ngl::ShaderLib::attachShader(BillboardFrag,ngl::ShaderType::FRAGMENT);
+  ngl::ShaderLib::attachShader(BillboardGeo,ngl::ShaderType::GEOMETRY);
 
   // attach the source
-  shader->loadShaderSource(BillboardVert,"shaders/BillboardVert.glsl");
-  shader->loadShaderSource(BillboardFrag,"shaders/BillboardFrag.glsl");
-  shader->loadShaderSource(BillboardGeo,"shaders/BillboardGeo.glsl");
+  ngl::ShaderLib::loadShaderSource(BillboardVert,"shaders/BillboardVert.glsl");
+  ngl::ShaderLib::loadShaderSource(BillboardFrag,"shaders/BillboardFrag.glsl");
+  ngl::ShaderLib::loadShaderSource(BillboardGeo,"shaders/BillboardGeo.glsl");
   // compile the shaders
-  shader->compileShader(BillboardVert);
-  shader->compileShader(BillboardFrag);
-  shader->compileShader(BillboardGeo);
+  ngl::ShaderLib::compileShader(BillboardVert);
+  ngl::ShaderLib::compileShader(BillboardFrag);
+  ngl::ShaderLib::compileShader(BillboardGeo);
   // add them to the program
-  shader->attachShaderToProgram(BillboardShader,BillboardVert);
-  shader->attachShaderToProgram(BillboardShader,BillboardFrag);
-  shader->attachShaderToProgram(BillboardShader,BillboardGeo);
+  ngl::ShaderLib::attachShaderToProgram(BillboardShader,BillboardVert);
+  ngl::ShaderLib::attachShaderToProgram(BillboardShader,BillboardFrag);
+  ngl::ShaderLib::attachShaderToProgram(BillboardShader,BillboardGeo);
 
   // now we have associated this data we can link the shader
-  shader->linkProgramObject(BillboardShader);
+  ngl::ShaderLib::linkProgramObject(BillboardShader);
   // and make it active ready to load values
-  (*shader)[BillboardShader]->use();
-  shader->setUniform("time",2);
+  ngl::ShaderLib::use(BillboardShader);
+  ngl::ShaderLib::setUniform("time",2);
 
   // create a voa of points to draw
   m_vao=ngl::VAOFactory::createVAO(ngl::simpleVAO,GL_POINTS);
   m_vao->bind();
 
-  ngl::Random *rng=ngl::Random::instance();
 
   VertexData p;
   std::vector <VertexData> points;
-  rng->setSeed(1234);
+  ngl::Random::setSeed(1234);
 
   for(int i=0; i<2000; ++i)
   {
-   float radius=8+rng->randomPositiveNumber(1);
+   float radius=8+ngl::Random::randomPositiveNumber(1);
    float x=radius*cosf( ngl::radians(i));
    float z=radius*sinf( ngl::radians(i));
 
    p.p.m_x=x;
-   p.p.m_y=-rng->randomPositiveNumber(1);
+   p.p.m_y=-ngl::Random::randomPositiveNumber(1);
    p.p.m_z=z;
 
-   p.p.m_w=static_cast<int>(rng->randomPositiveNumber(3));
+   p.p.m_w=static_cast<int>(ngl::Random::randomPositiveNumber(3));
    // time offset we have 10 frames for each texture
-   p.offset=static_cast<int>(rng->randomPositiveNumber(10));
+   p.offset=static_cast<int>(ngl::Random::randomPositiveNumber(10));
    points.push_back(p);
   }
   // use a lambda to depth sort via z
@@ -141,9 +136,9 @@ void NGLScene::initializeGL()
   m_maps[2]=t.setTextureGL();
   glGenerateMipmap(GL_TEXTURE_2D);
 
-  shader->setUniform("tex1",0);
-  shader->setUniform("tex2",1);
-  shader->setUniform("tex3",2);
+  ngl::ShaderLib::setUniform("tex1",0);
+  ngl::ShaderLib::setUniform("tex2",1);
+  ngl::ShaderLib::setUniform("tex3",2);
 
   glDisable( GL_DEPTH_TEST );
   glEnable(GL_BLEND);
@@ -159,9 +154,6 @@ void NGLScene::paintGL()
   // clear the screen and depth buffer
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  // grab an instance of the shader manager
-  ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-
   // now load to our new camera
   ngl::Mat4 yaw,pitch;
   // first create some rotation matrices from our yaw and pitch values
@@ -171,8 +163,8 @@ void NGLScene::paintGL()
   m_eye=m_eye*pitch*yaw;
   // calculate a new camera matrix and send to shader
   m_view=ngl::lookAt(m_eye,m_look,m_up);
-  shader->setUniform("camerapos",m_eye);
-  shader->setUniform("VP",m_project*m_view);
+  ngl::ShaderLib::setUniform("camerapos",m_eye);
+  ngl::ShaderLib::setUniform("VP",m_project*m_view);
   m_vao->bind();
   m_vao->draw();
   m_vao->unbind();
@@ -209,8 +201,7 @@ void NGLScene::timerEvent(QTimerEvent *)
   {
     ++m_time;
   }
-  ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-  shader->setUniform("time",m_time);
+  ngl::ShaderLib::setUniform("time",m_time);
   update();
 }
 
