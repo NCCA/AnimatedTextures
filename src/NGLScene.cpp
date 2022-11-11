@@ -8,7 +8,7 @@
 #include <ngl/ShaderLib.h>
 #include <ngl/Random.h>
 #include <ngl/Texture.h>
-
+#include <iostream>
 NGLScene::NGLScene()
 {
   setTitle("Animated Billboard Textures");
